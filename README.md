@@ -6,3 +6,6 @@ This code has been written to run on an Arduino Pro Micro. It should be easy to 
 
 ## Dependencies
 This code depends on the CruisingGeekCommon library. Unpack that library into your Arduino libraries folder.
+
+## MOSFET board
+If you are building this project and would like the mosfet board to switch the two external resistors, please contact me @ CruisingGeek@gmail.com
