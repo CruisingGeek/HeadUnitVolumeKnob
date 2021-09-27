@@ -1,0 +1,5 @@
+{
+    "board": "arduino:avr:micro",
+    "port": "COM4",
+    "sketch": "VolumeKnob.ino"
+}
