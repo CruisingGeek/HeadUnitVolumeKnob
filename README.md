@@ -14,4 +14,4 @@ If you are building this project and would like the mosfet board to switch the t
 The following are wiring diagrams using both the MOSFET board and for generic MOSFETs
 
 ![Wiring diagram with TruDrive](/WiringDiagrams/VolumeKnobWiring-TruDrive.png)
-![Wiring diagram with TruDrive](/WiringDiagrams/VolumeKnobWiring-MOSFETs.png)
+![Wiring diagram with TruDrive](/WiringDiagrams/VolumeKnobWiring-MOSFETS.png)
