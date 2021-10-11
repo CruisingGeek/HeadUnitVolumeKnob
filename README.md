@@ -9,3 +9,9 @@ This code depends on the CruisingGeekCommon library. Unpack that library into yo
 
 ## MOSFET board
 If you are building this project and would like the mosfet board to switch the two external resistors, please contact me @ CruisingGeek@gmail.com
+
+## Wiring Diagrams
+The following are wiring diagrams using both the MOSFET board and for generic MOSFETs
+
+![Wiring diagram with TruDrive](/WiringDiagrams/VolumeKnobWiring-TruDrive.png)
+![Wiring diagram with TruDrive](/WiringDiagrams/VolumeKnobWiring-MOSFETs.png)
