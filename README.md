@@ -5,7 +5,11 @@ Putting this Arduino module between your aftermarket Android head unit with a ro
 This code has been written to run on an Arduino Pro Micro. It should be easy to port it to other Arduino boards.
 
 ## Dependencies
-This code depends on the CruisingGeekCommon library. Unpack that library into your Arduino libraries folder.
+This code depends on the CruisingGeekCommon library. You can find that library here: https://github.com/CruisingGeek/CruisingGeekCommon
+Unpack that library into your Arduino libraries folder.
+
+This code also depends on a 3rd party RotoryEncoder library you can find here: https://github.com/mathertel/RotaryEncoder
+Unpack this into your libraries folder as well.
 
 ## MOSFET board
 If you are building this project and would like the mosfet board to switch the two external resistors, please contact me @ CruisingGeek@gmail.com
