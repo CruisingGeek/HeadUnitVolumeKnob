@@ -1,7 +1,25 @@
-#define PAUL_ENCODER 0
-#define ROTARY_ENCODER 1
-
-#define ENCODER ROTARY_ENCODER
+// --------------------------------------------------------------------------------------------------------------------
+// 
+// Head Unit Volume Knob
+// Scott DeBoer aka Cruising Geek
+// 
+// This project is used to interface a rotary encoder with aftermarket head units which have an SWC or remote control
+// input. Specifically, this will be an analog input with three wires, normally a 1/8" stereo jack on the head unit.
+// 
+// By wiring the arduino and interfacing with the head unit, twisting the volume knob will allow the volume to be
+// adjusted with the knob as opposed to using the buttons that most head units provide.
+//
+// You need to ensure that you have the analog steering wheel control (SWC) functionality that allows configuring
+// the resistor values for the buttons. The two-wire digital steering wheel control will not work.
+//
+// Update 2025-Oct-19
+// Because most aftermarket head units continue to provide 5v to the USB even if the keyed ignition is turned off,
+// it is necessary to run the Arduino Pro Micro with an external 5v buck module to prevent buffer overflow in the
+// code, and to prevent battery drain in the car. Due to this, I've also added support for Arduino UNO boards, which
+// already have a 5v buck module built-on. If you have the physical space using that board provides a bit cleaner
+// wiring.
+// 
+// --------------------------------------------------------------------------------------------------------------------
 
 #include "Arduino.h"
 
@@ -18,6 +36,42 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 // --------------------------------------------------------------------------------------------------------------------
+// PINS
+// --------------------------------------------------------------------------------------------------------------------
+#if defined(ARDUINO_AVR_UNO)
+    // Define these as the physical pins that the encoder is attached to.
+    const uint8_t ENCODER_PIN_A = 8;
+    const uint8_t ENCODER_PIN_B = 9;
+    // This pin is actually NC for our case but it is required to pass to the library.
+    const uint8_t ENCODER_BUTTON = 10;
+
+    // Define these as the digital output pins in which the two N-channel MOSFETS connect.
+    const uint8_t MOSFET_DECREASING = 12;
+    const uint8_t MOSFET_INCREASING = 11;
+
+    // Define the test pin. Setting this pin to GND will put the device in test mode which
+    // sends the signal for the extended hold time, allowing you to configure the device via
+    // the android SwC app.
+    const uint8_t TEST_PIN = 13;
+#else
+    // Define these as the physical pins that the encoder is attached to.
+    const uint8_t ENCODER_PIN_A = 2;
+    const uint8_t ENCODER_PIN_B = 3;
+    // This pin is actually NC for our case but it is required to pass to the library.
+    const uint8_t ENCODER_BUTTON = 10;
+
+    // Define these as the digital output pins in which the two N-channel MOSFETS connect.
+    const uint8_t MOSFET_DECREASING = 8;
+    const uint8_t MOSFET_INCREASING = 7;
+
+    // Define the test pin. Setting this pin to GND will put the device in test mode which
+    // sends the signal for the extended hold time, allowing you to configure the device via
+    // the android SwC app.
+    const uint8_t TEST_PIN = 15;
+#endif
+// --------------------------------------------------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------------------------------------------------
 // CONSTANTS
 // --------------------------------------------------------------------------------------------------------------------
 // Uncomment this line to see debugging info
@@ -25,22 +79,6 @@
 
 // Set this to non-zero to have an initial start value for testing
 #define INITIAL_START 0
-
-// Define these as the physical pins that the encoder is attached to.
-const uint8_t ENCODER_PIN_A = 2;
-const uint8_t ENCODER_PIN_B = 3;
-// This pin is actually NC for our case but it is required to pass to the library.
-const uint8_t ENCODER_BUTTON = 10;
-
-// Define these as the digital output pins in which the two N-channel MOSFETS connect.
-const uint8_t MOSFET_DECREASING = 8;
-const uint8_t MOSFET_INCREASING = 7;
-
-// Define the test pin. Setting this pin to GND will put the device in test mode which
-// sends the signal for the extended hold time, allowing you to configure the device via
-// the android SwC app.
-const uint8_t TEST_PIN = 15;
-
 // Length of time in milliseconds to hold the moseft open simulating a human touch.
 //
 // If this value is too short, the head unit will not register a simulated button press
