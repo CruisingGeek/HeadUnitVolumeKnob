@@ -5,6 +5,8 @@
 		}
 	],
 	"settings": {
-		"editor.renderWhitespace": "all"
+		"editor.renderWhitespace": "all",
+		"arduino.useArduinoCli": true,
+		"arduino.clearOutputOnBuild": true
 	}
 }
