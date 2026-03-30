@@ -23,6 +23,9 @@
 
 #include "Arduino.h"
 
+#include "constants.h"
+#include "HeadUnitDriver.h"
+
 // --------------------------------------------------------------------------------------------------------------------
 // LIBRARIES
 // 
@@ -35,102 +38,39 @@
 #include <Stopwatch.h>
 // --------------------------------------------------------------------------------------------------------------------
 
-// --------------------------------------------------------------------------------------------------------------------
-// PINS
-// --------------------------------------------------------------------------------------------------------------------
-#if defined(ARDUINO_AVR_UNO)
-    // Define these as the physical pins that the encoder is attached to.
-    const uint8_t ENCODER_PIN_A = 8;
-    const uint8_t ENCODER_PIN_B = 9;
-    // This pin is actually NC for our case but it is required to pass to the library.
-    const uint8_t ENCODER_BUTTON = 10;
-
-    // Define these as the digital output pins in which the two N-channel MOSFETS connect.
-    const uint8_t MOSFET_DECREASING = 12;
-    const uint8_t MOSFET_INCREASING = 11;
-
-    // Define the test pin. Setting this pin to GND will put the device in test mode which
-    // sends the signal for the extended hold time, allowing you to configure the device via
-    // the android SwC app.
-    const uint8_t TEST_PIN = 13;
-#else
-    // Define these as the physical pins that the encoder is attached to.
-    const uint8_t ENCODER_PIN_A = 2;
-    const uint8_t ENCODER_PIN_B = 3;
-    // This pin is actually NC for our case but it is required to pass to the library.
-    const uint8_t ENCODER_BUTTON = 10;
-
-    // Define these as the digital output pins in which the two N-channel MOSFETS connect.
-    const uint8_t MOSFET_DECREASING = 8;
-    const uint8_t MOSFET_INCREASING = 7;
-
-    // Define the test pin. Setting this pin to GND will put the device in test mode which
-    // sends the signal for the extended hold time, allowing you to configure the device via
-    // the android SwC app.
-    const uint8_t TEST_PIN = 15;
-#endif
-// --------------------------------------------------------------------------------------------------------------------
-
-// --------------------------------------------------------------------------------------------------------------------
-// CONSTANTS
-// --------------------------------------------------------------------------------------------------------------------
-// Uncomment this line to see debugging info
-// #define SERIAL_DEBUG
-
-// Set this to non-zero to have an initial start value for testing
-#define INITIAL_START 0
-// Length of time in milliseconds to hold the moseft open simulating a human touch.
-//
-// If this value is too short, the head unit will not register a simulated button press
-// by an external user. If the value is too long, this program could miss increments if
-// the person is spinning the knob rapidly.
-const uint32_t MOSFET_HOLD_MS = 80;
-const uint32_t MOSFET_HOLD_LOW_MS = 20;
-
-// Length of time in milliseconds to wait before polling the encoder to see if the
-// state changed.
-const uint32_t ENCODER_READ_MS = 1;
-
-// Length in time in milliseconds that MOSFET is held when in test mode.
-const uint32_t MOSFET_HOLD_EXTENDED_MS = 4000;
-// --------------------------------------------------------------------------------------------------------------------
-
-
-// --------------------------------------------------------------------------------------------------------------------
-// Enums
-// --------------------------------------------------------------------------------------------------------------------
-enum InternalState : uint8_t
-{
-    Off,
-    Decreasing,
-    Increasing,
-    HoldLow,
-};
-// --------------------------------------------------------------------------------------------------------------------
-
 
 // --------------------------------------------------------------------------------------------------------------------
 // Variables
 // --------------------------------------------------------------------------------------------------------------------
-#if ENCODER == ROTARY_ENCODER
+
+//
+// To ensure the class memory is allocated and will be counted towards the total used variables in Arduino, directly
+// construct the appropriate class instance here. Ensuring they have the same name prevents another #ifdef statement
+// in the setup routine.
+//
+// In the future, if it is desired to support both via hardware (aka a DIP switch, jumper), just instantiate both and
+// modify setup to select the correct one.
+//
+#if defined(USE_DIGITAL_HEADUNIT)
+DigitalHeadUnitDriver driverInstance(MOSFET_DIGITAL_PIN, DIGITAL_COMMAND_PAUSE_MS, KenwoodCommand::Mute);
+#else
+AnalogHeadUnitDriver driverInstance(MOSFET_INCREASING_PIN, MOSFET_DECREASING_PIN, TEST_PIN);
+#endif
+
 // Encoder Variable; this does the heavy lifting to read the encoder values and update positions.
 RotaryEncoder volumeKnob(ENCODER_PIN_A, ENCODER_PIN_B, RotaryEncoder::LatchMode::FOUR3);
-#else
-Encoder volumeKnob(ENCODER_PIN_A, ENCODER_PIN_B);
-#endif
-// Stopwatch variables to trigger turning off the MOSFETs and checking the encoder
+
+// HeadUnitDriver. The specific instance is currently set by firmware modification; in the future the board could have
+// a dip switch or jumper to set this by the customer without firmware loading.
+
+IHeadUnitDriver *headUnitDriver;
+
+// Stopwatch variable to check the encoder for twists.
 Stopwatch encoderStopwatch;
-Stopwatch mosfetStopwatch;
-Stopwatch holdLowStopwatch;
 
+// Keeps track of the encoder's virtual position, which is the number of clicks forward minus number of clicks
+// backwards since startup.
 long previousPosition;
-
-// Keeps track of when the MOSFETS need to be shut off.
-InternalState state = InternalState::Off;
-
-uint32_t lengthToHold;
-
-long count = 0;
 // --------------------------------------------------------------------------------------------------------------------
 
 
@@ -145,23 +85,17 @@ void setup()
     }
     #endif // SERIAL_DEBUG
 
-    pinMode(MOSFET_DECREASING, OUTPUT);
-    pinMode(MOSFET_INCREASING, OUTPUT);
+    headUnitDriver = &driverInstance;
+
+    pinMode(MOSFET_DECREASING_PIN, OUTPUT);
+    pinMode(MOSFET_INCREASING_PIN, OUTPUT);
     pinMode(TEST_PIN, INPUT_PULLUP);
-    digitalWrite(MOSFET_DECREASING, LOW);
-    digitalWrite(MOSFET_INCREASING, LOW);
+
+    digitalWrite(MOSFET_DECREASING_PIN, LOW);
+    digitalWrite(MOSFET_INCREASING_PIN, LOW);
 
     encoderStopwatch.Start();
-    mosfetStopwatch.Start();
-
-    lengthToHold = MOSFET_HOLD_MS;
-
-    #if INITIAL_START != 0
-    {
-        count = 0;
-        state = InternalState::Off;
-    }
-    #endif  // INITIAL_START != 0
+    headUnitDriver->StartDriver();
 }
 
 void loop()
@@ -169,23 +103,7 @@ void loop()
     volumeKnob.tick();
     encoderStopwatch.Update();
 
-    if (state == InternalState::Decreasing || state == InternalState::Increasing)
-    {
-        mosfetStopwatch.Update();
-    }
-    else
-    {
-        mosfetStopwatch.Reset();
-    }
-
-    if (state == InternalState::HoldLow)
-    {
-        holdLowStopwatch.Update();
-    }
-    else
-    {
-        holdLowStopwatch.Reset();
-    }
+    headUnitDriver->UpdateCounters();
 
     // if (encoderStopwatch.HasElapsed(ENCODER_READ_MS))
     {
@@ -193,29 +111,7 @@ void loop()
         encoderStopwatch.Reset();
     }
 
-    if ((state == InternalState::Increasing || state == InternalState::Decreasing)
-         && mosfetStopwatch.HasElapsed(lengthToHold))
-    {
-        HandleTurnOffMosfets();
-        mosfetStopwatch.Reset();
-        uint32_t testPinVal = digitalRead(TEST_PIN);
-        lengthToHold = testPinVal == LOW ? MOSFET_HOLD_EXTENDED_MS : MOSFET_HOLD_MS;
-    }
-
-    if (state == InternalState::HoldLow && holdLowStopwatch.HasElapsed(MOSFET_HOLD_LOW_MS))
-    {
-        state = count == 0
-            ? InternalState::Off
-            : count > 0
-                ? InternalState::Increasing
-                : InternalState::Decreasing;
-        
-        if (state != InternalState::Off)
-        {
-            uint8_t pin = state == InternalState::Decreasing ? MOSFET_DECREASING : MOSFET_INCREASING;
-            digitalWrite(pin, HIGH);
-        }
-    }
+    headUnitDriver->RunIteration();
 }
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -228,56 +124,15 @@ void CheckForRotaryChange()
     int newPos = volumeKnob.getPosition();
     int delta = abs(newPos - previousPosition);
 
-    #ifdef SERIAL_DEBUG
-    if (delta != 0)
-    {
-        Serial.print("delta: ");
-        Serial.println(delta);
-    }
-
-    #endif // SERIAL_DEBUG
     if (newPos > previousPosition)
     {
-        HandleKnobChange(delta, InternalState::Decreasing);
+        headUnitDriver->HandleKnobChange(delta, InternalState::Decreasing);
     }
     else if (newPos < previousPosition)
     {
-        HandleKnobChange(delta, InternalState::Increasing);
+        headUnitDriver->HandleKnobChange(delta, InternalState::Increasing);
     }
 
     previousPosition = newPos;
-}
-
-void HandleKnobChange(int delta, InternalState newState)
-{
-    #ifdef SERIAL_DEBUG
-    {
-        Serial.print("Handling ");
-        Serial.println(newState == InternalState::Decreasing ? "Decreasing" : "Increasing");
-    }
-    #endif // SERIAL_DEBUG
-
-    if (count == 0)
-    {
-        uint8_t pin = newState == InternalState::Decreasing ? MOSFET_DECREASING : MOSFET_INCREASING;
-        digitalWrite(pin, HIGH);
-    }
-
-    state = newState;
-    count += state == InternalState::Increasing ? delta : -delta;
-}
-
-void HandleTurnOffMosfets()
-{
-    #ifdef SERIAL_DEBUG
-    {
-        Serial.println("Turning off mosfets");
-    }
-    #endif // SERIAL_DEBUG
-
-    count += state == InternalState::Increasing ? -1 : 1;
-    state = InternalState::HoldLow;
-    digitalWrite(MOSFET_DECREASING, LOW);
-    digitalWrite(MOSFET_INCREASING, LOW);
 }
 // --------------------------------------------------------------------------------------------------------------------

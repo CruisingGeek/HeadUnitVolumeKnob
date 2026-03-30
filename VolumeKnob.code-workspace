@@ -7,6 +7,12 @@
 	"settings": {
 		"editor.renderWhitespace": "all",
 		"arduino.useArduinoCli": true,
-		"arduino.clearOutputOnBuild": true
+		"arduino.clearOutputOnBuild": true,
+		"terminal.integrated.defaultProfile.windows": "Command Prompt",
+		"cSpell.words": [
+			"Kenwood",
+			"mosfet",
+			"Mosfets"
+		]
 	}
 }
