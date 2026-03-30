@@ -36,6 +36,8 @@
 #include <RotaryEncoder.h>
 // Library location: https://github.com/CruisingGeek/CruisingGeekCommon
 #include <Stopwatch.h>
+// Library location: https://github.com/CruisingGeek/CruisingGeekCommon
+#include <Button.h>
 // --------------------------------------------------------------------------------------------------------------------
 
 
@@ -60,9 +62,18 @@ AnalogHeadUnitDriver driverInstance(MOSFET_INCREASING_PIN, MOSFET_DECREASING_PIN
 // Encoder Variable; this does the heavy lifting to read the encoder values and update positions.
 RotaryEncoder volumeKnob(ENCODER_PIN_A, ENCODER_PIN_B, RotaryEncoder::LatchMode::FOUR3);
 
+// Button attached to the rotary encoder.
+Button knobButton(
+    ENCODER_BUTTON_PIN,
+    ButtonType::Momentary,
+    ButtonPolarity::ActiveLow,
+    1000, /* 1000ms */
+    true /* usePullup */);
+
+//
 // HeadUnitDriver. The specific instance is currently set by firmware modification; in the future the board could have
 // a dip switch or jumper to set this by the customer without firmware loading.
-
+//
 IHeadUnitDriver *headUnitDriver;
 
 // Stopwatch variable to check the encoder for twists.
@@ -108,6 +119,7 @@ void loop()
     // if (encoderStopwatch.HasElapsed(ENCODER_READ_MS))
     {
         CheckForRotaryChange();
+        CheckForRotaryPress();
         encoderStopwatch.Reset();
     }
 
@@ -134,5 +146,15 @@ void CheckForRotaryChange()
     }
 
     previousPosition = newPos;
+}
+
+void CheckForRotaryPress()
+{
+    ButtonState buttonState = knobButton.DetermineButtonState();
+
+    if (buttonState == ButtonState::ShortPress)
+    {
+        headUnitDriver->HandleKnobPressed();
+    }
 }
 // --------------------------------------------------------------------------------------------------------------------

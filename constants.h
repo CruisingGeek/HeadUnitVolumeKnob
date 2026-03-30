@@ -16,10 +16,13 @@
     const uint8_t MOSFET_INCREASING_PIN = 11;
     const uint8_t MOSFET_BUTTON_PIN = 10;
 
+    //
     // Define the test pin. Setting this pin to GND will put the device in test mode which sends the signal for the
     // extended hold time, allowing you to configure the device via the android SwC app.
+    //
     const uint8_t TEST_PIN = 13;
 
+    //
     // Define the digital output pin that drives the MOSFET for the digital communication protocol, used in Kenwood
     // and select JVC models.
     //
@@ -34,7 +37,12 @@
     // Knob button needs to be read by the CPU to handle the digital version, and its output sent to a transistor for
     // the analog version.
     //
-    // For 1.x boards,
+    // For 1.x boards, this button is ONLY supported when using the digital headunit, aka Kenwood/JVC. That's because
+    // there is no corresponding MOSFET to trigger the analog resistor. On 1.x boards when using the digital headunit
+    // the wire for MUTE 1 needs to be moved directly to Pin 14, the PIN right above VIN on the rail with six inputs.
+    //
+    // For 2.x boards, just wire to the MUTE 1 and MUTE 2 pads as normal.
+    //
     const uint8_t ENCODER_BUTTON_PIN = 14;
 #else
     // Define these as the physical pins that the encoder is attached to.
@@ -60,10 +68,10 @@
 
 
 // Uncomment this line to see debugging info
-#define SERIAL_DEBUG
+// #define SERIAL_DEBUG
 
 // Uncomment this for the digital head unit
-// #define DIGITAL_HEADUNIT 1
+#define DIGITAL_HEADUNIT 1
 
 // Set this to non-zero to have an initial start value for testing
 #define INITIAL_START 0
@@ -86,7 +94,7 @@ const uint32_t MOSFET_HOLD_LOW_MS = 20;
 // tuns on the knob could be missed since the program will spend too many cycles on sending the command as opposed to
 // reading the knob input.
 //
-const uint32_t DIGITAL_COMMAND_PAUSE_MS = 10;
+const uint32_t DIGITAL_COMMAND_PAUSE_MS = 2;
 
 // Length of time in milliseconds to wait before polling the encoder to see if the
 // state changed.
