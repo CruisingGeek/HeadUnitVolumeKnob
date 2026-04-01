@@ -76,9 +76,6 @@ Button knobButton(
 //
 IHeadUnitDriver *headUnitDriver;
 
-// Stopwatch variable to check the encoder for twists.
-Stopwatch encoderStopwatch;
-
 // Keeps track of the encoder's virtual position, which is the number of clicks forward minus number of clicks
 // backwards since startup.
 long previousPosition;
@@ -105,22 +102,18 @@ void setup()
     digitalWrite(MOSFET_DECREASING_PIN, LOW);
     digitalWrite(MOSFET_INCREASING_PIN, LOW);
 
-    encoderStopwatch.Start();
     headUnitDriver->StartDriver();
 }
 
 void loop()
 {
     volumeKnob.tick();
-    encoderStopwatch.Update();
-
     headUnitDriver->UpdateCounters();
 
-    // if (encoderStopwatch.HasElapsed(ENCODER_READ_MS))
     {
+        // Rotary encoder input checks.
         CheckForRotaryChange();
         CheckForRotaryPress();
-        encoderStopwatch.Reset();
     }
 
     headUnitDriver->RunIteration();

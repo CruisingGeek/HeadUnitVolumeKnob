@@ -126,6 +126,8 @@ void PulseGenerator::SendPulseSequence(PulseFormat format, uint32_t data)
     Timer1.initialize(interruptMicros);
     Timer1.attachInterrupt(HandleInterrupt);
     Timer1.restart();
+
+    _isSending = true;
 }
 
 void PulseGenerator::SendPulseSequence(PulseFormat format, uint8_t addr, uint8_t command)
@@ -145,6 +147,10 @@ void PulseGenerator::SendPulseSequence(PulseFormat format, uint8_t addr, uint8_t
     SendPulseSequence(format, data);
 }
 
+bool PulseGenerator::IsSendInProgress() const
+{
+    return _isSending;
+}
 // --------------------------------------------------------------------------------------------------------------------
 
 
@@ -166,6 +172,7 @@ void PulseGenerator::SendCurrentPulse()
         // Done here, exit
         digitalWrite(_pin, LOW);
         Timer1.stop();
+        _isSending = false;
         return;
     }
 

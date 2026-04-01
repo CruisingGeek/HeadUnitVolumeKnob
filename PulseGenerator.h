@@ -59,6 +59,11 @@ public:
      */
     void SendPulseSequence(PulseFormat format, uint8_t addr, uint8_t command);
 
+    /**
+     * @brief   Indicates if there is an active send in progress.
+     */
+    bool IsSendInProgress() const;
+
 protected:
     /**
      * @brief   Constructs an instance of the PulseGenerator class.

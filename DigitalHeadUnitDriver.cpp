@@ -34,8 +34,6 @@ DigitalHeadUnitDriver::DigitalHeadUnitDriver(
     _knobPressedCommand = buttonPressCommand;
 
     PulseGenerator::Instance().AssignPin(_mosfetPin);
-
-    _commandStopwatch = new Stopwatch();
 }
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -45,24 +43,16 @@ DigitalHeadUnitDriver::DigitalHeadUnitDriver(
 // --------------------------------------------------------------------------------------------------------------------
 void DigitalHeadUnitDriver::StartDriver()
 {
-    _commandStopwatch->Start();
 }
 
 void DigitalHeadUnitDriver::UpdateCounters()
 {
-    if (_count != 0)
-    {
-        _commandStopwatch->Update();
-    }
-    else
-    {
-        _commandStopwatch->Reset();
-    }
 }
 
 void DigitalHeadUnitDriver::RunIteration()
 {
-    if (_runKnobPressed)
+    if (_runKnobPressed
+        && !PulseGenerator::Instance().IsSendInProgress())
     {
         WriteData(KenwoodAddress, _knobPressedCommand);
         _runKnobPressed = false;
@@ -74,9 +64,8 @@ void DigitalHeadUnitDriver::RunIteration()
 
     if (
         _count != 0
-        && (_forceRun || _commandStopwatch->HasElapsed(_commandPauseMS)))
+        && !PulseGenerator::Instance().IsSendInProgress())
     {
-        _commandStopwatch->Reset();
         _forceRun = false;
 
         // Run one command per iteration; note that
@@ -86,6 +75,18 @@ void DigitalHeadUnitDriver::RunIteration()
 
         WriteData(KenwoodAddress, command);
 
+        #ifdef SERIAL_DEBUG
+        {
+            String upDown = _state == InternalState::Decreasing
+                ? "down"
+                : _state == InternalState::Increasing
+                    ? "up"
+                    : "unknown";
+            Serial.println("Sending volume command " + upDown + ".");
+            Serial.print("Count: ");
+            Serial.println(_count);
+        }
+        #endif
         int increment = _state == InternalState::Increasing ? -1 : 1;
         _count += increment;
 

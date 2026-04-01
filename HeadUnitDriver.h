@@ -157,7 +157,6 @@ private:
     long _count;
     boolean _forceRun, _runKnobPressed;
     KenwoodCommand _knobPressedCommand;
-    Stopwatch *_commandStopwatch;
 };
 
 #endif  // __CruisingGeek_HeadUnitDriver__
