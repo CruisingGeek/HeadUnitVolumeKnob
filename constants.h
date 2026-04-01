@@ -76,9 +76,6 @@
 // Set this to non-zero to have an initial start value for testing
 #define INITIAL_START 0
 
-// Define the pins for the IRremote library
-#define IR_SEND_PIN 3
-
 // Length of time in milliseconds (ms) to hold the mosfet open simulating a human touch for the analog driver.
 //
 // If this value is too short, the head unit will not register a simulated button press by an external user. If the

@@ -151,45 +151,6 @@ private:
     */
     void WriteData (uint8_t addr, KenwoodCommand command);
 
-    /**
-     * Pulse the specified output wire with high and then low for the specified duration.
-     * 
-     * @param   holdCountHighMicroS
-     *          Length to hold the pin high, in microseconds (us).
-     * 
-     * @param   holdCountLowMicroS
-     *          Length to hold the pin low after holding it high, in microseconds (us).
-     */
-    void WriteBase (uint8_t holdCountHighMicroS, uint8_t holdCountLowMicroS);
-
-    /**
-     * Write 8bit data to the output wire.
-     * 
-     * @param   bits
-     *          Pointer to the 8 bits of data which will be pulsed.
-     */
-    void Write8bit (uint8_t *bits);
-
-    /**
-     * Write the specific start sequence, which is a 9ms high followed by a 4.5ms low pluse.
-     */
-    void WriteStart (void);
-
-    /**
-     * Write the finish pulse which is only a single high pulse for 562us.
-     */
-    void WriteFinish (void);
-
-    /**
-     * Write a binary one, which is a 562us high pulse, followed by a 562us * 3 low pulse.
-     */
-    void WriteBinaryOne (void);
-
-    /**
-     * Write a binary zero, which is a 562 high pulse, followed by a 562us low pulse.
-     */
-    void WriteBinaryZero (void);
-
     InternalState _state;
     uint8_t _mosfetPin;
     uint32_t _commandPauseMS;

@@ -20,6 +20,7 @@
                 "C:\\Users\\naigo\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.7\\variants\\standard",
                 "d:\\My Documents\\Arduino\\libraries\\RotaryEncoder\\src",
                 "d:\\My Documents\\Arduino\\libraries\\CruisingGeekCommon\\src",
+                "d:\\My Documents\\Arduino\\libraries\\TimerOne",
                 "c:\\users\\naigo\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7\\lib\\gcc\\avr\\7.3.0\\include",
                 "c:\\users\\naigo\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7\\lib\\gcc\\avr\\7.3.0\\include-fixed",
                 "c:\\users\\naigo\\appdata\\local\\arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7\\avr\\include"

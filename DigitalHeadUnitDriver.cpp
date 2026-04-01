@@ -1,5 +1,6 @@
 #include "Arduino.h"
 #include "HeadUnitDriver.h"
+#include "PulseGenerator.h"
 
 #include <Stopwatch.h>
 
@@ -31,6 +32,8 @@ DigitalHeadUnitDriver::DigitalHeadUnitDriver(
     _count = 0;
     _state = InternalState::Off;
     _knobPressedCommand = buttonPressCommand;
+
+    PulseGenerator::Instance().AssignPin(_mosfetPin);
 
     _commandStopwatch = new Stopwatch();
 }
@@ -91,15 +94,6 @@ void DigitalHeadUnitDriver::RunIteration()
             : _count > 0
                 ? InternalState::Increasing
                 : InternalState::Decreasing;
-
-        #if defined(SERIAL_DEBUG)
-        {
-            Serial.print("CurrentState: ");
-            Serial.println(_state);
-            Serial.print("Count: ");
-            Serial.println(_count);
-        }
-        #endif
     }
 }
 
@@ -126,74 +120,6 @@ void DigitalHeadUnitDriver::HandleKnobPressed()
 // --------------------------------------------------------------------------------------------------------------------
 void DigitalHeadUnitDriver::WriteData(uint8_t addr, KenwoodCommand command)
 {
-    uint8_t naddr = ~addr;
-
-    uint8_t data = command;
-    uint8_t ndata  = ~data;
-
-    WriteStart();
-    Write8bit (&addr);
-    Write8bit (&naddr);
-    Write8bit (&data);
-    Write8bit (&ndata);
-    WriteFinish();
-}
-
-void DigitalHeadUnitDriver::WriteBase(uint8_t holdCountHighMicroS, uint8_t holdCountLowMicroS)
-{
-    uint8_t hm = holdCountHighMicroS;
-    uint8_t lm = holdCountLowMicroS;
-
-    digitalWrite(_mosfetPin, HIGH);
-    for (uint8_t i = 0; i < hm; i++)
-    {
-        delayMicroseconds(TickTimeMicroSeconds);
-    }
-
-    digitalWrite(_mosfetPin, LOW);
-    for (uint8_t i = 0; i < lm; i++)
-    {
-        delayMicroseconds(TickTimeMicroSeconds);
-    }
-}
-
-void DigitalHeadUnitDriver::Write8bit(uint8_t *bits)
-{
-    for (uint8_t i=0; i<8; i++)
-    {
-        if (*bits & 0x01 == 0x01)
-        {
-            WriteBinaryOne();
-        }
-        else
-        {
-            WriteBinaryZero();
-        }
-        *bits = *bits >> 1;
-    }
-}
-
-void DigitalHeadUnitDriver::WriteStart(void)
-{
-    // 16 * 562us = 9ms high, 8 * 562us = 4.5ms low
-    WriteBase(16, 8);
-}
-
-void DigitalHeadUnitDriver::WriteFinish(void)
-{
-    // To finish only write an extra high pulse.
-    WriteBase(1, 0);
-}
-
-void DigitalHeadUnitDriver::WriteBinaryOne(void)
-{
-    // 562.5us high, 562us * 3 = 1.6875us low.
-    WriteBase(1, 3);
-}
-
-void DigitalHeadUnitDriver::WriteBinaryZero(void)
-{
-    // 562.5us high, 562.5us low
-    WriteBase(1, 1);
+    PulseGenerator::Instance().SendPulseSequence(PulseFormat::NEC, addr, command);
 }
 // --------------------------------------------------------------------------------------------------------------------

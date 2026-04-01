@@ -92,7 +92,7 @@ void setup()
 {
     #ifdef SERIAL_DEBUG
     {
-        Serial.begin(9600);
+        Serial.begin(115200);
     }
     #endif // SERIAL_DEBUG
 
