@@ -137,7 +137,6 @@ void PulseGenerator::SendPulseSequence(PulseFormat format, uint8_t addr, uint8_t
     uint8_t pCommand = command;
     uint8_t nCommand  = ~command;
 
-    // Could support big-endian here.
     uint32_t data =
         ((uint32_t)nCommand << 24)
         | ((uint32_t)pCommand << 16)
@@ -231,6 +230,10 @@ uint32_t computeNextTargetCount(uint8_t index, uint8_t cycle, uint32_t data, Pul
     // Normal data case.
     //
     // Determine if the bit for the current index is zero or one. Then set the high/low bits accordingly.
+    // 
+    // This method sends data byte by byte from lowest byte to highest byte. Currently, for each byte it sends
+    // using little endian; in the future, the value from the format table should be used to determine if it is
+    // big endian, and do the shift accordingly.
     //
     uint32_t shiftedData = index == 1
         ? data
