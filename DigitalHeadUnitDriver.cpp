@@ -75,18 +75,6 @@ void DigitalHeadUnitDriver::RunIteration()
 
         WriteData(KenwoodAddress, command);
 
-        #ifdef SERIAL_DEBUG
-        {
-            String upDown = _state == InternalState::Decreasing
-                ? "down"
-                : _state == InternalState::Increasing
-                    ? "up"
-                    : "unknown";
-            Serial.println("Sending volume command " + upDown + ".");
-            Serial.print("Count: ");
-            Serial.println(_count);
-        }
-        #endif
         int increment = _state == InternalState::Increasing ? -1 : 1;
         _count += increment;
 
