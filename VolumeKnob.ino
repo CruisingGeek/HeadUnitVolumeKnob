@@ -54,7 +54,13 @@
 // modify setup to select the correct one.
 //
 #if defined(USE_DIGITAL_HEADUNIT)
-DigitalHeadUnitDriver driverInstance(MOSFET_DIGITAL_PIN, DIGITAL_COMMAND_PAUSE_MS, KenwoodCommand::Mute);
+DigitalHeadUnitDriver driverInstance(
+    MOSFET_DIGITAL_PIN,
+    DIGITAL_COMMAND_PAUSE_MS,
+    // Mute is the best option here, as play/pause and next track are context dependent in most Kenwood head units,
+    // ie on the home screen do nothing, and in the radio do not what you'd expect. Mute on the other hand always
+    // mutes.
+    KenwoodCommand::Mute);
 #else
 AnalogHeadUnitDriver driverInstance(MOSFET_INCREASING_PIN, MOSFET_DECREASING_PIN, TEST_PIN);
 #endif
