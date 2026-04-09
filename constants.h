@@ -71,7 +71,7 @@
 // #define SERIAL_DEBUG
 
 // Uncomment this for the digital head unit
-#define DIGITAL_HEADUNIT 1
+// #define DIGITAL_HEADUNIT 1
 
 // Set this to non-zero to have an initial start value for testing
 #define INITIAL_START 0
