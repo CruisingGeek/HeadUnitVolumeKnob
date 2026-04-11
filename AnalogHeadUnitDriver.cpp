@@ -5,16 +5,20 @@
 // --------------------------------------------------------------------------------------------------------------------
 // Constructor
 // --------------------------------------------------------------------------------------------------------------------
-AnalogHeadUnitDriver::AnalogHeadUnitDriver(uint8_t increasingPin, uint8_t decreasingPin, uint8_t testPin)
+AnalogHeadUnitDriver::AnalogHeadUnitDriver(
+    uint8_t increasingPin,
+    uint8_t decreasingPin,
+    uint8_t buttonPin,
+    uint8_t testPin
+)
+    : _iPin(increasingPin)
+    , _dPin(decreasingPin)
+    , _bPin(buttonPin)
+    , _tPin(testPin)
+    , _state(InternalState::Off)
+    , _lengthToHold(MOSFET_HOLD_MS)
+    , _count(0)
 {
-    _iPin = increasingPin;
-    _dPin = decreasingPin;
-    _tPin = testPin;
-
-    _state = InternalState::Off;
-    _lengthToHold = MOSFET_HOLD_MS;
-    _count = 0;
-
     _mosfetStopwatch = new Stopwatch();
     _holdLowStopwatch = new Stopwatch();
 }
@@ -38,7 +42,9 @@ void AnalogHeadUnitDriver::StartDriver()
 
 void AnalogHeadUnitDriver::UpdateCounters()
 {
-    if (_state == InternalState::Decreasing || _state == InternalState::Increasing)
+    if (_state == InternalState::Decreasing
+        || _state == InternalState::Increasing
+        || _state == InternalState::ButtonPress)
     {
         _mosfetStopwatch->Update();
     }
@@ -59,19 +65,23 @@ void AnalogHeadUnitDriver::UpdateCounters()
 
 void AnalogHeadUnitDriver::RunIteration()
 {
-    if ((_state == InternalState::Increasing || _state == InternalState::Decreasing)
-         && _mosfetStopwatch->HasElapsed(_lengthToHold))
+    if ((
+            _state == InternalState::Increasing
+            || _state == InternalState::Decreasing
+            || _state == InternalState::ButtonPress
+        )
+        && _mosfetStopwatch->HasElapsed(_lengthToHold))
     {
-        _count += _state == InternalState::Increasing ? -1 : 1;
+        _count += _state == InternalState::ButtonPress
+            ? 0
+            : _state == InternalState::Increasing ? -1 : 1;
         _state = InternalState::HoldLow;
 
         TurnOffMosfets();
         UpdateLengthToHold();
-        _mosfetStopwatch->Reset();
-        
     }
 
-    if (_state == InternalState::HoldLow && _holdLowStopwatch->HasElapsed(MOSFET_HOLD_LOW_MS))
+    else if (_state == InternalState::HoldLow && _holdLowStopwatch->HasElapsed(MOSFET_HOLD_LOW_MS))
     {
         _state = _count == 0
             ? InternalState::Off
@@ -89,28 +99,27 @@ void AnalogHeadUnitDriver::RunIteration()
 
 void AnalogHeadUnitDriver::HandleKnobChange(int delta, InternalState newState)
 {
-    #ifdef SERIAL_DEBUG
-    {
-        Serial.print("Handling ");
-        Serial.println(newState == InternalState::Decreasing ? "Decreasing" : "Increasing");
-    }
-    #endif // SERIAL_DEBUG
-
     if (_count == 0)
     {
-        uint8_t pin = newState == InternalState::Decreasing ? _dPin : _iPin;
-        digitalWrite(pin, HIGH);
+        if (_state == InternalState::Off)
+        {
+            uint8_t pin = newState == InternalState::Decreasing ? _dPin : _iPin;
+            digitalWrite(pin, HIGH);
+        }
 
         // TODO test this.
         _state = newState;
     }
 
-    _count += _state == InternalState::Increasing ? delta : -delta;
+    _count += newState == InternalState::Increasing ? delta : -delta;
 }
 
 void AnalogHeadUnitDriver::HandleKnobPressed()
 {
-    // V1.1 of the board there's nothing to do here.
+    _state = InternalState::ButtonPress;
+    TurnOffMosfets();
+    digitalWrite(_bPin, HIGH);
+    _mosfetStopwatch->Reset();
 }
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -128,6 +137,7 @@ void AnalogHeadUnitDriver::TurnOffMosfets()
 
     digitalWrite(_dPin, LOW);
     digitalWrite(_iPin, LOW);
+    digitalWrite(_bPin, LOW);
 }
 
 void AnalogHeadUnitDriver::UpdateLengthToHold()

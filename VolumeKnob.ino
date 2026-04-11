@@ -62,7 +62,7 @@ DigitalHeadUnitDriver driverInstance(
     // mutes.
     KenwoodCommand::Mute);
 #else
-AnalogHeadUnitDriver driverInstance(MOSFET_INCREASING_PIN, MOSFET_DECREASING_PIN, TEST_PIN);
+AnalogHeadUnitDriver driverInstance(MOSFET_INCREASING_PIN, MOSFET_DECREASING_PIN, MOSFET_BUTTON_PIN, TEST_PIN);
 #endif
 
 // Encoder Variable; this does the heavy lifting to read the encoder values and update positions.
@@ -103,10 +103,12 @@ void setup()
 
     pinMode(MOSFET_DECREASING_PIN, OUTPUT);
     pinMode(MOSFET_INCREASING_PIN, OUTPUT);
+    pinMode(MOSFET_BUTTON_PIN, OUTPUT);
     pinMode(TEST_PIN, INPUT_PULLUP);
 
     digitalWrite(MOSFET_DECREASING_PIN, LOW);
     digitalWrite(MOSFET_INCREASING_PIN, LOW);
+    digitalWrite(MOSFET_BUTTON_PIN, LOW);
 
     headUnitDriver->StartDriver();
 }
@@ -135,15 +137,24 @@ void CheckForRotaryChange()
     int newPos = volumeKnob.getPosition();
     int delta = abs(newPos - previousPosition);
 
-    if (newPos > previousPosition)
+    if (delta == 0)
     {
-        headUnitDriver->HandleKnobChange(delta, InternalState::Decreasing);
-    }
-    else if (newPos < previousPosition)
-    {
-        headUnitDriver->HandleKnobChange(delta, InternalState::Increasing);
+        // Nothing to handle if the knob didn't change.
+        return;
     }
 
+    InternalState currentState = newPos > previousPosition
+        ? InternalState::Decreasing
+        : InternalState::Increasing;
+
+    #if defined(SERIAL_DEBUG)
+    {
+        Serial.print("Handling ");
+        Serial.println(currentState == InternalState::Increasing ? "Increasing" : "Decreasing");
+    }
+    #endif
+
+    headUnitDriver->HandleKnobChange(delta, currentState);
     previousPosition = newPos;
 }
 

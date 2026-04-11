@@ -82,8 +82,8 @@
 // value is too long, this program could miss increments if the person is spinning the knob rapidly, and the input lag
 // becomes too noticeable.
 //
-const uint32_t MOSFET_HOLD_MS = 80;
-const uint32_t MOSFET_HOLD_LOW_MS = 20;
+const uint32_t MOSFET_HOLD_MS = 60;
+const uint32_t MOSFET_HOLD_LOW_MS = 60;
 
 // Length of time in milliseconds (ms) between sending digital commands for the digital driver.
 //

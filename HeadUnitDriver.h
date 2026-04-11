@@ -16,6 +16,7 @@ enum InternalState : uint8_t
     Decreasing,
     Increasing,
     HoldLow,
+    ButtonPress,
 };
 
 /**
@@ -84,7 +85,7 @@ struct IHeadUnitDriver
 class AnalogHeadUnitDriver : public IHeadUnitDriver
 {
 public:
-    AnalogHeadUnitDriver(uint8_t increasingPin, uint8_t decreasingPin, uint8_t testPin);
+    AnalogHeadUnitDriver(uint8_t increasingPin, uint8_t decreasingPin, uint8_t buttonPin, uint8_t testPin);
 
     // IHeadUnitDriver interface methods
     void StartDriver();
@@ -98,7 +99,7 @@ private:
     void UpdateLengthToHold();
 
     InternalState _state;
-    uint8_t _iPin, _dPin, _tPin;
+    uint8_t _iPin, _dPin, _bPin, _tPin;
     uint32_t _lengthToHold;
     long _count;
     Stopwatch *_mosfetStopwatch;
