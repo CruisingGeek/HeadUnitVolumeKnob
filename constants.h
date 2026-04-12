@@ -31,7 +31,7 @@
     // For V1.1 pcbs, there is only two available so we will reuse the increasing one from the analog output. This
     // means that the R1 resistor needs to be swapped though with one more in the 100 ohm range.
     //
-    const uint8_t MOSFET_DIGITAL_PIN = 11;
+    const uint8_t MOSFET_DIGITAL_PIN = MOSFET_INCREASING_PIN;
 
     //
     // Knob button needs to be read by the CPU to handle the digital version, and its output sent to a transistor for
