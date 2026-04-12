@@ -22,17 +22,16 @@ const uint8_t KenwoodAddress = 0xB9;
 DigitalHeadUnitDriver::DigitalHeadUnitDriver(
     uint8_t digitalMosfetPin,
     uint32_t commandPauseMS,
-    KenwoodCommand buttonPressCommand)
+    KenwoodCommand buttonPressCommand
+)
+    : _mosfetPin(digitalMosfetPin)
+    , _commandPauseMS(commandPauseMS)
+    , _forceRun(false)
+    , _runKnobPressed(false)
+    , _count(0)
+    , _state(InternalState::Off)
+    , _knobPressedCommand(buttonPressCommand)
 {
-    _mosfetPin = digitalMosfetPin;
-    _commandPauseMS = commandPauseMS;
-
-    _forceRun = false;
-    _runKnobPressed = false;
-    _count = 0;
-    _state = InternalState::Off;
-    _knobPressedCommand = buttonPressCommand;
-
     PulseGenerator::Instance().AssignPin(_mosfetPin);
 }
 // --------------------------------------------------------------------------------------------------------------------
