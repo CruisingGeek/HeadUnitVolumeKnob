@@ -143,7 +143,9 @@ void CheckForRotaryChange()
         return;
     }
 
-    InternalState currentState = newPos > previousPosition
+    // NOTE - this compare has been swapped from V1.x so that the code matches reality (volume knob twist to right
+    // will say increasing in the code)
+    InternalState currentState = newPos < previousPosition
         ? InternalState::Decreasing
         : InternalState::Increasing;
 
