@@ -2,6 +2,7 @@
 #include "constants.h"
 #include "PulseGenerator.h"
 
+// Library location: https://github.com/paulstoffregen/timerone
 #include <TimerOne.h>
 
 struct PulseFormatMetadata
