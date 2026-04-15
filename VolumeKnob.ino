@@ -1,16 +1,23 @@
 // --------------------------------------------------------------------------------------------------------------------
-// 
 // Head Unit Volume Knob
 // Scott DeBoer aka Cruising Geek
 // 
 // This project is used to interface a rotary encoder with aftermarket head units which have an SWC or remote control
-// input. Specifically, this will be an analog input with three wires, normally a 1/8" stereo jack on the head unit.
-// 
-// By wiring the arduino and interfacing with the head unit, twisting the volume knob will allow the volume to be
-// adjusted with the knob as opposed to using the buttons that most head units provide.
+// input.
 //
-// You need to ensure that you have the analog steering wheel control (SWC) functionality that allows configuring
-// the resistor values for the buttons. The two-wire digital steering wheel control will not work.
+// Updated 2026-April-14
+// This now supports all three of the major classes of head units on the market.
+//  1. Android head units with configurable resistor values (ie the original Atoto this project was made for).
+//  2. Analog head units that have Panosonic style hard-coded resistor values (namely Pioneer and Sony).
+//  3. Head units with a single Remote input which communicate with an NEC digital protocol (Kenwood, JVC).
+// 
+// It is possible that there are more subtypes of case 2 that are unknown and would not be supported, but since most
+// customers that are not using and Android-based one are using Pioneer or Kenwood this covers most cases.
+//
+// By wiring the arduino and interfacing with the head unit, twisting the volume knob will allow the volume to be
+// adjusted with the knob as opposed to using the buttons that most head units provide. Further, a single press on the
+// rotary encoder will mute the head unit (for some Pioneer models it will do attenuation, which is a super low
+// volume but not fully muted). Of course with the Android configurable ones you can configure it to anything desired.
 //
 // Update 2025-Oct-19
 // Because most aftermarket head units continue to provide 5v to the USB even if the keyed ignition is turned off,
@@ -18,7 +25,6 @@
 // code, and to prevent battery drain in the car. Due to this, I've also added support for Arduino UNO boards, which
 // already have a 5v buck module built-on. If you have the physical space using that board provides a bit cleaner
 // wiring.
-// 
 // --------------------------------------------------------------------------------------------------------------------
 
 #include "Arduino.h"
