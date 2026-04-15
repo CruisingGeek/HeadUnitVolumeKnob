@@ -46,24 +46,20 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 //
-// To ensure the class memory is allocated and will be counted towards the total used variables in Arduino, directly
-// construct the appropriate class instance here. Ensuring they have the same name prevents another #ifdef statement
-// in the setup routine.
+// Construct the driver for both the digital and analog version. While it does waste a bit of space this will ensure
+// that selection can be done easily. In the future, if space becomes an issue these could be loaded in via memory
+// allocation.
 //
-// In the future, if it is desired to support both via hardware (aka a DIP switch, jumper), just instantiate both and
-// modify setup to select the correct one.
-//
-#if defined(USE_DIGITAL_HEADUNIT)
-DigitalHeadUnitDriver driverInstance(
+
+DigitalHeadUnitDriver digitalDriver(
     MOSFET_DIGITAL_PIN,
     DIGITAL_COMMAND_PAUSE_MS,
     // Mute is the best option here, as play/pause and next track are context dependent in most Kenwood head units,
     // ie on the home screen do nothing, and in the radio do not what you'd expect. Mute on the other hand always
     // mutes.
     KenwoodCommand::Mute);
-#else
-AnalogHeadUnitDriver driverInstance(MOSFET_INCREASING_PIN, MOSFET_DECREASING_PIN, MOSFET_BUTTON_PIN, TEST_PIN);
-#endif
+
+AnalogHeadUnitDriver analogDriver(MOSFET_INCREASING_PIN, MOSFET_DECREASING_PIN, MOSFET_BUTTON_PIN, TEST_PIN);
 
 // Encoder Variable; this does the heavy lifting to read the encoder values and update positions.
 RotaryEncoder volumeKnob(ENCODER_PIN_A, ENCODER_PIN_B, RotaryEncoder::LatchMode::FOUR3);
@@ -99,16 +95,24 @@ void setup()
     }
     #endif // SERIAL_DEBUG
 
-    headUnitDriver = &driverInstance;
-
     pinMode(MOSFET_DECREASING_PIN, OUTPUT);
     pinMode(MOSFET_INCREASING_PIN, OUTPUT);
     pinMode(MOSFET_BUTTON_PIN, OUTPUT);
     pinMode(TEST_PIN, INPUT_PULLUP);
+    pinMode(MODE_PIN, INPUT_PULLUP);
+    pinMode(OUTPUT_GND_PIN, OUTPUT);
 
     digitalWrite(MOSFET_DECREASING_PIN, LOW);
     digitalWrite(MOSFET_INCREASING_PIN, LOW);
     digitalWrite(MOSFET_BUTTON_PIN, LOW);
+    digitalWrite(OUTPUT_GND_PIN, LOW);
+
+    // Select the correct head unit driver based on the DIP switch, and select it accordingly.
+    //
+    auto mode = digitalRead(MODE_PIN);
+    headUnitDriver = mode == LOW
+        ? (IHeadUnitDriver*)&digitalDriver
+        : (IHeadUnitDriver*)&analogDriver;
 
     headUnitDriver->StartDriver();
 }

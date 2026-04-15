@@ -20,7 +20,19 @@
     // Define the test pin. Setting this pin to GND will put the device in test mode which sends the signal for the
     // extended hold time, allowing you to configure the device via the android SwC app.
     //
-    const uint8_t TEST_PIN = 13;
+    const uint8_t TEST_PIN = 2;
+
+    //
+    // Define the Mode pin. Settings this pin to GND indicates that the device should be ran in the NEC digital mode,
+    // which supports Kenwood and JVC head units.
+    //
+    const uint8_t MODE_PIN = 3;
+
+    //
+    // For testing convenience, have the neighboring pin to the TEST_PIN and MODE_PIN output GND so a jumper can be
+    // used on the header to turn either of those on.
+    //
+    const uint8_t OUTPUT_GND_PIN = 4;
 
     //
     // Define the digital output pin that drives the MOSFET for the digital communication protocol, used in Kenwood
@@ -70,9 +82,6 @@
 // Uncomment this line to see debugging info
 // #define SERIAL_DEBUG
 
-// Uncomment this for the digital head unit
-// #define DIGITAL_HEADUNIT 1
-
 // Set this to non-zero to have an initial start value for testing
 #define INITIAL_START 0
 
@@ -99,9 +108,5 @@ const uint32_t ENCODER_READ_MS = 1;
 
 // Length in time in milliseconds that MOSFET is held when in test mode.
 const uint32_t MOSFET_HOLD_EXTENDED_MS = 4000;
-
-#if defined(DIGITAL_HEADUNIT) and defined(VOLUME_KNOB_SHIELD)
-#define USE_DIGITAL_HEADUNIT
-#endif
 
 #endif  // __CruisingGeek_Constants_H__
