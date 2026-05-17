@@ -8,8 +8,8 @@
     #define VOLUME_KNOB_SHIELD 1
 
     // Define these as the physical pins that the encoder is attached to.
-    const uint8_t ENCODER_PIN_A = 8;
-    const uint8_t ENCODER_PIN_B = 9;
+    const uint8_t ENCODER_PIN_A = 9;
+    const uint8_t ENCODER_PIN_B = 8;
 
     // Define these as the digital output pins in which the two N-channel MOSFETS connect.
     const uint8_t MOSFET_DECREASING_PIN = 11;
