@@ -115,9 +115,13 @@ void setup()
     digitalWrite(MOSFET_BUTTON_PIN, LOW);
     digitalWrite(OUTPUT_GND_PIN, LOW);
 
+    // Need a small delay here to ensure MODE_PIN is setup correctly.
+    delay(10);
+
     // Select the correct head unit driver based on the DIP switch, and select it accordingly.
     //
     auto mode = digitalRead(MODE_PIN);
+
     headUnitDriver = mode == LOW
         ? (IHeadUnitDriver*)&digitalDriver
         : (IHeadUnitDriver*)&analogDriver;
@@ -160,13 +164,6 @@ void CheckForRotaryChange()
     InternalState currentState = newPos < previousPosition
         ? InternalState::Decreasing
         : InternalState::Increasing;
-
-    #if defined(SERIAL_DEBUG)
-    {
-        Serial.print("Handling ");
-        Serial.println(currentState == InternalState::Increasing ? "Increasing" : "Decreasing");
-    }
-    #endif
 
     headUnitDriver->HandleKnobChange(delta, currentState);
     previousPosition = newPos;
